@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*/*">
+    <title>Title</title>
+    <script src="../static/js/jquery-3.3.1.min.js"></script>
+    <!--<script src="../static/js/main.js"></script>-->
+    <script src="../static/js/test.js"></script>
+</head>
+<body>
+<h1>only for test</h1>
+<div>
+    <label for="email">email:</label><input type="email" id="email">
+    <label for="password">password:</label><input type="password" id="password">
+    <label for="remember">remember me</label><input type="checkbox" id="remember">
+    <br><br>
+    <label for="username">username:</label><input type="text" id="username">
+    <label for="user_id">user_id:</label><input type="text" id="user_id">
+    <br><br>
+    <label for="book_id">book_id:</label><input type="text" id="book_id">
+    <label for="name">name:</label><input type="text" id="name">
+    <label for="author">author:</label><input type="text" id="author">
+    <br><br>
+    <label for="number">number:</label><input type="text" id="number">
+    <label for="max_time">max_time:</label><input type="text" id="max_time">
+</div>
+    <h2>user:</h2>
+<div>
+    <input type="button" onclick="user_login()" value="login">
+    <input type="button" onclick="user_logout()" value="logout">
+    <input type="button" onclick="user_modify()" value="modify">
+    <input type="button" onclick="user_register()" value="register">
+    <input type="button" onclick="user_query()" value="query">
+</div>
+<h2>admin:</h2>
+<div>
+    <input type="button" onclick="admin_login()" value="login">
+    <input type="button" onclick="admin_logout()" value="logout">
+    <input type="button" onclick="admin_modify()" value="modify">
+    <input type="button" onclick="admin_search()" value="search people">
+</div>
+<h2>book:</h2>
+<div>
+    <input type="button" onclick="book_search()" value="search">
+    <input type="button" onclick="book_borrow()" value="borrow">
+    <input type="button" onclick="book_return()" value="return">
+    <input type="button" onclick="book_add()" value="add">
+    <input type="button" onclick="book_remove()" value="remove">
+    <input type="button" onclick="book_modify()" value="modify">
+</div>
+<h2>result:</h2>
+<div>
+    <label for="result">log: </label><input type="button" onclick="result_clear()" value="clear"><br>
+    <textarea id="result" rows="20" cols="90" style="color: greenyellow; background: gray; font-size: 15px"></textarea>
+</div>
+</body>
+</html>
