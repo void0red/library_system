@@ -182,6 +182,7 @@
     });
 })(jQuery);
 
+
 const localhost = 'http://127.0.0.1:5000';
 
 const urls = {
@@ -210,34 +211,36 @@ function login() {
     let email = $("#login_email").val();
     let password = $.md5($("#login_password").val());
     let remember = $(":checkbox[id='login_remember']").is(':checked');
-    $.ajax({
-        type: 'POST',
-        url: urls.login,
-        xhrFields: {withCredentials: true},
-        crossDomain: true,
-        data: JSON.stringify({'email': email, 'password': password, 'remember': remember}),
-        dataType: 'json',
-        contentType: 'application/json',
-        complete: function (a) {
-            if (a.status === 200) {
-                window.location.href = urls.head + '/dashboard.html';
-            } else if (a.status === 201) {
-                window.location.href = urls.head + '/manage.html';
-            } else if (a.status === 202) {
-                $("#login_message").html("账户不存在");
-            } else if (a.status === 203) {
-                $("#login_message").html("密码错误");
-            } else {
-                $("#login_message").html("出了点其他问题？");
+    if(email !== '' && password !== ''){
+        $.ajax({
+            type: 'POST',
+            url: urls.login,
+            xhrFields: {withCredentials: true},
+            crossDomain: true,
+            data: JSON.stringify({'email': email, 'password': password, 'remember': remember}),
+            dataType: 'json',
+            contentType: 'application/json',
+            complete: function (a) {
+                if (a.status === 200 || a.status === 201) {
+                    window.location.href = urls.head + '/search.html';
+                } else if (a.status === 202) {
+                    $("#login_message").html("账户不存在");
+                } else if (a.status === 203) {
+                    $("#login_message").html("密码错误");
+                } else {
+                    $("#login_message").html("出了点其他问题？");
+                }
             }
-        }
-    })
+        })
+    }
 }
 
 function logout() {
     $.ajax({
         type: 'GET',
         url: urls.logout,
+        xhrFields: {withCredentials: true},
+        crossDomain: true,
         complete: function () {
             window.location.href = urls.head + '/index.html';
         }
@@ -354,28 +357,129 @@ function admin_search() {
         }
     })
 }
+
 function book_search() {
-    let id = $("#book_id").val();
-    let name = $("#name").val();
-    let author = $("#author").val();
-    $.ajax({
-        type: 'POST',
-        url: urls.book_search,
-        data: JSON.stringify({'id': id, 'name': name, 'author': author}),
-        dataType: 'json',
-        xhrFields: {withCredentials: true},
-        crossDomain: true,
-        contentType: 'application/json',
-        complete: function (a) {
-            $("#result").val($("#result").val() + JSON.stringify({'id': id, 'name': name, 'author': author})
-                + '\n' + 'status:' + a.status + '\n');
-            if (a.status === 200){
-                const data = a.responseText;
-                $("#result").val($("#result").val() + data + '\n');
+    let content = $("#search").val();
+    if(content !== ''){
+        $.ajax({
+            type: 'POST',
+            url: urls.book_search,
+            data: JSON.stringify({'id': content, 'name': content, 'author': content}),
+            dataType: 'json',
+            xhrFields: {withCredentials: true},
+            crossDomain: true,
+            contentType: 'application/json',
+            complete: function (a) {
+                $("#result").html('');
+                if (a.status === 202){
+                    $("#search").val("没有找到 试试其他关键词？");
+                }else if(a.status === 200){
+                    $(".title").animate({marginBottom: '30px'});
+                    const data = JSON.parse(a.responseText);
+                    for(let i = 0; i < data.length; i++){
+                        let div = document.createElement('div');
+                        div.className = 'list-group-item';
+                        div.innerHTML = '<a data-toggle="modal" data-target="#book_' + i + '">' + eval(i+1) + '#   '+ data[i].name + '</a>';
+
+                        let div2 = document.createElement('div');
+                        div2.className = 'modal fade';
+                        div2.setAttribute('id', 'book_' + i);
+                        div2.setAttribute('aria-labelledby', 'book_' + i + '_name');
+                        div2.setAttribute('aria-hidden', 'true');
+
+                        let div3 = document.createElement('div');
+                        div3.className = 'modal-dialog';
+
+                        let div4 = document.createElement('div');
+                        div4.className = 'modal-content';
+
+                        let div5 = document.createElement('div');
+                        div5.className = 'modal-header';
+                        div5.innerHTML = '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+                            '<h4 class="modal-title" id="book_' + i + '_name">' + data[i].name + '</h4>';
+                        div4.appendChild(div5);
+
+                        let div6 = document.createElement('div');
+                        div6.className = 'modal-body';
+                        div6.innerHTML =
+                            '<p>编号：' + data[i].id + '</p>' +
+                            '<p>作者：' + data[i].author + '</p>' +
+                            '<p>最大借阅时长：' + data[i].max_time + '天</p>' +
+                            '<p>是否可借阅：' + data[i].available + '</p>';
+                        div4.appendChild(div6);
+
+                        let div7 = document.createElement('div');
+                        div7.className = 'modal-footer';
+
+                        let button = document.createElement('button');
+                        button.className = 'btn btn-default list-btn';
+                        button.innerHTML = '借阅';
+                        button.setAttribute('onclick', 'book_borrow()');
+                        button.disabled = !data[i].available;
+
+                        div7.appendChild(button);
+
+                        div4.appendChild(div7);
+
+                        div3.appendChild(div4);
+                        div2.appendChild(div3);
+                        div.appendChild(div2);
+                        $("#result").append(div);
+                    }
+                }else if(a.status === 201){
+                    $(".title").animate({marginBottom:'30px'});
+                    const data = JSON.parse(a.responseText);
+                    for(let i = 0; i < data.length; i++){
+                        let div = document.createElement('div');
+                        div.className = 'list-group-item';
+                        div.innerHTML = '<a data-toggle="modal" data-target="#book_' + i + '">' + eval(i+1) + '#   '+ data[i].name + '</a>';
+
+                        let div2 = document.createElement('div');
+                        div2.className = 'modal fade';
+                        div2.setAttribute('id', 'book_' + i);
+                        div2.setAttribute('aria-labelledby', 'book_' + i + '_name');
+                        div2.setAttribute('aria-hidden', 'true');
+
+                        let div3 = document.createElement('div');
+                        div3.className = 'modal-dialog';
+
+                        let div4 = document.createElement('div');
+                        div4.className = 'modal-content';
+
+                        let div5 = document.createElement('div');
+                        div5.className = 'modal-header';
+                        div5.innerHTML = '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+                            '<h4 class="modal-title" id="book_' + i + '_name">' + data[i].name + '</h4>';
+                        div4.appendChild(div5);
+
+                        let div6 = document.createElement('div');
+                        div6.className = 'modal-body';
+                        div6.innerHTML =
+                            '<p>编号：' + data[i].id + '</p>' +
+                            '<p>作者：' + data[i].author + '</p>' +
+                            '<p>最大借阅时长：' + data[i].max_time + '天</p>' +
+                            '<p>是否可借阅：' + data[i].available + '</p>' +
+                            '<p>现存：' + data[i].number + '/' + data[i].summary + '</p>';
+                        div4.appendChild(div6);
+
+                        div3.appendChild(div4);
+                        div2.appendChild(div3);
+                        div.appendChild(div2);
+                        $("#result").append(div);
+                    }
+                }else if(a.status === 400){
+                    window.location.href = urls.head + '/index.html';
+                }
             }
-        }
-    })
+        })
+    }
 }
+function book_search_clean() {
+    $(".title").animate({marginBottom: '120px'});
+    $("#search").val('');
+    $("#result").html('');
+}
+
 function book_borrow() {
     let id = $("#book_id").val();
     $.ajax({
