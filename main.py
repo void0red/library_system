@@ -3,7 +3,7 @@ from Database import *
 from flask_security import login_user, login_required, logout_user, current_user
 from flask import jsonify, request
 import datetime
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 
 
 @app.route('/api/login', methods=['POST'])
@@ -33,29 +33,6 @@ def logout():
     return '', 200
 
 
-# @app.route('/api/user/login', methods=['POST'])
-# def user_login():
-#     data = request.get_json()
-#     if not data or not data.get('email') or not data.get('password'):
-#         return '', 400
-#     user = User.query.filter_by(email=data['email']).first()
-#     if user is None or not user.has_role('User'):
-#         return '', 201
-#     elif not user.password == data['password']:
-#         return '', 202
-#     else:
-#         login_user(user, remember=data['remember'])
-#         return '', 200
-
-
-# @app.route('/api/user/logout', methods=['GET'])
-# @app.route('/api/admin/logout', methods=['GET'])
-# @login_required
-# def user_logout():
-#     logout_user()
-#     return '', 200
-
-
 @app.route('/api/user/register', methods=['POST'])
 def user_register():
     data = request.get_json()
@@ -79,19 +56,20 @@ def user_modify():
         return '', 400
     data = request.get_json()
     if not data:
-        return '', 201
-    if data.get('new_email'):
+        return '', 400
+    if data.get('new_email') and data.get('new_email') is not '':
         x = User.query.filter_by(email=data['new_email']).first()
-        if not x:
+        if not x or x.email == data['new_email']:
             current_user.email = data['new_email']
         else:
-            return '', 201
-    if data.get('new_password'):
+            return '', 202
+    if data.get('new_password') and data.get('new_password') is not '':
         current_user.password = data['new_password']
-    if data.get('new_username'):
+    if data.get('new_username') and data.get('new_username') is not '':
         current_user.username = data['new_username']
     db.session.commit()
-    return '', 200
+    logout_user()
+    return '', 201
 
 
 @app.route('/api/user/query', methods=['GET'])
@@ -102,23 +80,9 @@ def user_query():
     borrow = Borrow.query.filter_by(user_id=current_user.id).all()
     re = []
     for i in borrow:
-        re.append({'book_id': i.book_id, 'start_time': i.start_time, 'end_time': i.end_time})
-    return jsonify(re), 200
-
-
-# @app.route('/api/admin/login', methods=['POST'])
-# def admin_login():
-#     data = request.get_json()
-#     if not data or not data.get('email') or not data.get('password'):
-#         return '', 400
-#     user = User.query.filter_by(email=data['email']).first()
-#     if user is None or not user.has_role('Admin'):
-#         return '', 201
-#     elif not user.password == data['password']:
-#         return '', 202
-#     else:
-#         login_user(user, remember=data['remember'])
-#         return '', 200
+        book = Book.query.filter_by(id=i.book_id).first()
+        re.append({'book_id': i.book_id, 'name': book.name, 'start_time': i.start_time, 'end_time': i.end_time})
+    return jsonify(re), 201
 
 
 @app.route('/api/admin/modify', methods=['POST'])
@@ -179,16 +143,10 @@ def book_search():
     data = request.get_json()
     if not data:
         return '', 400
-    query_params = {}
-    if data.get('id'):
-        query_params['id'] = data['id']
-    elif data.get('name'):
-        query_params['name'] = data['name']
-    elif data.get('author'):
-        query_params['author'] = data['author']
-    book = Book.query.filter_by(**query_params).limit(10).all()
+    book = Book.query.filter(or_(Book.id == data['id'], Book.author.like('%' + data['author'] + '%'),
+                                 Book.name.like('%' + data['name'] + '%'))).limit(10).all()
     if not book:
-        return '', 201
+        return '', 202
     else:
         if current_user.has_role('User'):
             re = []
@@ -210,7 +168,7 @@ def book_search():
                 re.append({'id': i.id, 'name': i.name, 'available': available,
                            'max_time': i.max_time, 'author': i.author, 'number': i.number,
                            'summary': i.summary})
-            return jsonify(re), 200
+            return jsonify(re), 201
         else:
             return '', 400
 

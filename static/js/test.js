@@ -182,6 +182,7 @@
     });
 })(jQuery);
 
+
 const localhost = 'http://127.0.0.1:5000';
 
 const urls = {
@@ -210,40 +211,40 @@ function login() {
     let email = $("#login_email").val();
     let password = $.md5($("#login_password").val());
     let remember = $(":checkbox[id='login_remember']").is(':checked');
-    $.ajax({
-        type: 'POST',
-        url: urls.login,
-        xhrFields: {withCredentials: true},
-        crossDomain: true,
-        data: JSON.stringify({'email': email, 'password': password, 'remember': remember}),
-        dataType: 'json',
-        contentType: 'application/json',
-        complete: function (a) {
-            if (a.status === 200) {
-                window.location.href = urls.head + '/dashboard.html';
-            } else if (a.status === 201) {
-                window.location.href = urls.head + '/manage.html';
-            } else if (a.status === 202) {
-                $("#login_message").html("账户不存在");
-            } else if (a.status === 203) {
-                $("#login_message").html("密码错误");
-            } else {
-                $("#login_message").html("出了点其他问题？");
+    if(email !== '' && password !== ''){
+        $.ajax({
+            type: 'POST',
+            url: urls.login,
+            xhrFields: {withCredentials: true},
+            crossDomain: true,
+            data: JSON.stringify({'email': email, 'password': password, 'remember': remember}),
+            dataType: 'json',
+            contentType: 'application/json',
+            complete: function (a) {
+                if (a.status === 200 || a.status === 201) {
+                    window.location.href = urls.head + '/search.html';
+                } else if (a.status === 202) {
+                    $("#login_message").html("账户不存在");
+                } else if (a.status === 203) {
+                    $("#login_message").html("密码错误");
+                } else {
+                    $("#login_message").html("出了点其他问题？");
+                }
             }
-        }
-    })
+        })
+    }
 }
-
 function logout() {
     $.ajax({
         type: 'GET',
         url: urls.logout,
+        xhrFields: {withCredentials: true},
+        crossDomain: true,
         complete: function () {
             window.location.href = urls.head + '/index.html';
         }
     })
 }
-
 function user_register() {
     $("#register_message").html('');
     let email = $("#register_email").val();
@@ -278,40 +279,242 @@ function user_register() {
 
 }
 
-
-function user_modify() {
-    let new_email = $("#email").val();
-    let new_password = $.md5($("#password").val());
-    let new_username = $("#username").val();
-    let params = {'new_email': new_email, 'new_password': new_password, 'new_username': new_username};
-    $.ajax({
-        type: 'POST',
-        url: urls.user_modify,
-        data: JSON.stringify(params),
-        xhrFields: {withCredentials: true},
-        crossDomain: true,
-        contentType: 'application/json',
-        complete: function (a) {
-            let re = 'data:' + JSON.stringify(params) + '\nstatus:' + a.status;
-            $("#result").val($("#result").val() + re + '\n');
-        }
-    })
-}
 function user_query() {
+    $("#result").html('');
+    let div = document.createElement('table');
+    div.className = 'table table-hover';
+    let head = document.createElement('thead');
+    head.innerHTML = '<tr>' +
+        '<th>书名</th>' +
+        '<th>借阅时间</th>' +
+        '<th>最迟归还时间</th>' +
+        '<th>状态</th>' +
+        '</tr>';
+    div.appendChild(head);
+    let tbody = document.createElement('tbody');
     $.ajax({
         type: 'GET',
         url: urls.user_query,
         xhrFields: {withCredentials: true},
         crossDomain: true,
+        dataType: 'json',
         complete: function (a) {
-            $("#result").val($("#result").val() + 'status:' + a.status + '\n');
-            if(a.status === 200){
-                const data = a.responseText;
-                $("#result").val($("#result").val() + data + '\n');
+            if(a.status === 201){
+                const data = JSON.parse(a.responseText);
+                if(!data){
+                    $("#result").html('<h3>还没有借书？快去<a href="search.html">搜索</a></h3>吧！');
+                }else{
+                    for(let i = 0; i < data.length; i++){
+                        let tr = document.createElement('tr');
+                        let start_time = new Date(data[i].start_time);
+                        let end_time = new Date(data[i].end_time);
+                        let now = new Date();
+                        if(now > end_time){
+                            tr.innerHTML = '<td>' + data[i].name + '</td>' +
+                                '<td>' + start_time.toLocaleDateString() + '</td>' +
+                                '<td>' + end_time.toLocaleDateString() + '</td>' +
+                                '<td>逾期</td>';
+                            tr.className = 'danger';
+                            tr.setAttribute('style', 'color: #f00');
+                        }else{
+                            tr.innerHTML = '<td>' + data[i].name + '</td>' +
+                                '<td>' + start_time.toLocaleDateString() + '</td>' +
+                                '<td>' + end_time.toLocaleDateString() + '</td>' +
+                                '<td>正常</td>';
+                            tr.className = 'success';
+                        }
+                        tbody.appendChild(tr);
+                    }
+                    div.appendChild(tbody);
+                    $("#result").append(div);
+                }
+            }else{
+                window.location.href = urls.head + '/index.html';
             }
         }
     })
 }
+function book_search() {
+    let content = $("#search").val();
+    if(content !== ''){
+        $.ajax({
+            type: 'POST',
+            url: urls.book_search,
+            data: JSON.stringify({'id': content, 'name': content, 'author': content}),
+            dataType: 'json',
+            xhrFields: {withCredentials: true},
+            crossDomain: true,
+            contentType: 'application/json',
+            complete: function (a) {
+                $("#result").html('');
+                if (a.status === 202){
+                    $("#search").val("没有找到 试试其他关键词？");
+                }else if(a.status === 200){
+                    $(".title").animate({marginBottom: '30px'});
+                    const data = JSON.parse(a.responseText);
+                    for(let i = 0; i < data.length; i++){
+                        let div = document.createElement('div');
+                        div.className = 'list-group-item';
+                        div.innerHTML = '<a data-toggle="modal" data-target="#book_' + i + '">' + eval(i+1) + '#   '+ data[i].name + '</a>';
+
+                        let div2 = document.createElement('div');
+                        div2.className = 'modal fade';
+                        div2.setAttribute('id', 'book_' + i);
+                        div2.setAttribute('aria-labelledby', 'book_' + i + '_name');
+                        div2.setAttribute('aria-hidden', 'true');
+
+                        let div3 = document.createElement('div');
+                        div3.className = 'modal-dialog';
+
+                        let div4 = document.createElement('div');
+                        div4.className = 'modal-content';
+
+                        let div5 = document.createElement('div');
+                        div5.className = 'modal-header';
+                        div5.innerHTML = '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+                            '<h4 class="modal-title" id="book_' + i + '_name">' + data[i].name + '</h4>';
+                        div4.appendChild(div5);
+
+                        let div6 = document.createElement('div');
+                        div6.className = 'modal-body';
+                        div6.innerHTML =
+                            '<p>编号：' + data[i].id + '</p>' +
+                            '<p>作者：' + data[i].author + '</p>' +
+                            '<p>最大借阅时长：' + data[i].max_time + '天</p>' +
+                            '<p>是否可借阅：' + data[i].available + '</p>';
+                        div4.appendChild(div6);
+
+                        let div7 = document.createElement('div');
+                        div7.className = 'modal-footer';
+
+                        let message = document.createElement('div');
+                        message.className = 'message';
+                        message.setAttribute('id', 'borrow_message_' + data[i].id);
+                        div7.appendChild(message);
+
+                        let button = document.createElement('button');
+                        button.className = 'btn btn-default list-btn';
+                        button.innerHTML = '借阅';
+                        button.setAttribute('onclick', 'book_borrow(' + data[i].id + ')');
+                        button.disabled = !data[i].available;
+
+                        div7.appendChild(button);
+
+                        div4.appendChild(div7);
+
+                        div3.appendChild(div4);
+                        div2.appendChild(div3);
+                        div.appendChild(div2);
+                        $("#result").append(div);
+                    }
+                }else if(a.status === 201){
+                    $(".title").animate({marginBottom:'30px'});
+                    const data = JSON.parse(a.responseText);
+                    for(let i = 0; i < data.length; i++){
+                        let div = document.createElement('div');
+                        div.className = 'list-group-item';
+                        div.innerHTML = '<a data-toggle="modal" data-target="#book_' + i + '">' + eval(i+1) + '#   '+ data[i].name + '</a>';
+
+                        let div2 = document.createElement('div');
+                        div2.className = 'modal fade';
+                        div2.setAttribute('id', 'book_' + i);
+                        div2.setAttribute('aria-labelledby', 'book_' + i + '_name');
+                        div2.setAttribute('aria-hidden', 'true');
+
+                        let div3 = document.createElement('div');
+                        div3.className = 'modal-dialog';
+
+                        let div4 = document.createElement('div');
+                        div4.className = 'modal-content';
+
+                        let div5 = document.createElement('div');
+                        div5.className = 'modal-header';
+                        div5.innerHTML = '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+                            '<h4 class="modal-title" id="book_' + i + '_name">' + data[i].name + '</h4>';
+                        div4.appendChild(div5);
+
+                        let div6 = document.createElement('div');
+                        div6.className = 'modal-body';
+                        div6.innerHTML =
+                            '<p>编号：' + data[i].id + '</p>' +
+                            '<p>作者：' + data[i].author + '</p>' +
+                            '<p>最大借阅时长：' + data[i].max_time + '天</p>' +
+                            '<p>是否可借阅：' + data[i].available + '</p>' +
+                            '<p>现存：' + data[i].number + '/' + data[i].summary + '</p>';
+                        div4.appendChild(div6);
+
+                        div3.appendChild(div4);
+                        div2.appendChild(div3);
+                        div.appendChild(div2);
+                        $("#result").append(div);
+                    }
+                }else if(a.status === 400){
+                    window.location.href = urls.head + '/index.html';
+                }
+            }
+        })
+    }
+}
+function book_search_clean() {
+    $(".title").animate({marginBottom: '120px'});
+    $("#search").val('');
+    $("#result").html('');
+}
+function book_borrow(id) {
+    $.ajax({
+        type: 'POST',
+        url: urls.book_borrow,
+        data: JSON.stringify({'id': id}),
+        dataType: 'json',
+        xhrFields: {withCredentials: true},
+        crossDomain: true,
+        contentType: 'application/json',
+        complete: function (a) {
+            if(a.status === 201){
+                $("#borrow_message_" + id).html('当前书不可借阅');
+            }else if(a.status === 200){
+                $("#borrow_message_" + id).html('成功');
+            }else{
+                window.location.href = urls.head + '/index.html';
+            }
+        }
+    })
+}
+
+function user_modify() {
+    $("#modify_message").html('');
+    let email = $("#email").val();
+    let password = $("#password").val();
+    let repassword = $("#re_password").val();
+    let username = $("#username").val();
+    let reg = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$");
+    if (email && !reg.test(email)) {
+        $("#modify_message").html("请输入正确的邮箱");
+    } else if (password !== repassword) {
+        $("#modify_message").html("两次密码不相同");
+    } else {
+        let params = {'new_email': email, 'new_password': $.md5(password), 'new_username': username};
+        $.ajax({
+            type: 'POST',
+            url: urls.user_modify,
+            data: JSON.stringify(params),
+            xhrFields: {withCredentials: true},
+            crossDomain: true,
+            contentType: 'application/json',
+            complete: function (a) {
+                if(a.status === 202){
+                    $("#modify_message").html("邮箱已存在");
+                }else if(a.status === 400){
+                    window.location.href = urls.head + '/index.html';
+                }else if(a.status === 201){
+                    $("#modify_message").html("修改成功");
+                    window.location.href = urls.head + '/index.html';
+                }
+            }
+        })
+    }
+}
+
 
 function admin_modify() {
     let new_email = $("#email").val();
@@ -354,44 +557,8 @@ function admin_search() {
         }
     })
 }
-function book_search() {
-    let id = $("#book_id").val();
-    let name = $("#name").val();
-    let author = $("#author").val();
-    $.ajax({
-        type: 'POST',
-        url: urls.book_search,
-        data: JSON.stringify({'id': id, 'name': name, 'author': author}),
-        dataType: 'json',
-        xhrFields: {withCredentials: true},
-        crossDomain: true,
-        contentType: 'application/json',
-        complete: function (a) {
-            $("#result").val($("#result").val() + JSON.stringify({'id': id, 'name': name, 'author': author})
-                + '\n' + 'status:' + a.status + '\n');
-            if (a.status === 200){
-                const data = a.responseText;
-                $("#result").val($("#result").val() + data + '\n');
-            }
-        }
-    })
-}
-function book_borrow() {
-    let id = $("#book_id").val();
-    $.ajax({
-        type: 'POST',
-        url: urls.book_borrow,
-        data: JSON.stringify({'id': id}),
-        dataType: 'json',
-        xhrFields: {withCredentials: true},
-        crossDomain: true,
-        contentType: 'application/json',
-        complete: function (a) {
-            $("#result").val($("#result").val() + JSON.stringify({'id': id})
-                + '\n' + 'status:' + a.status + '\n');
-        }
-    })
-}
+
+
 function book_return() {
     let id = $("#book_id").val();
     $.ajax({
@@ -466,6 +633,7 @@ function book_modify() {
         }
     })
 }
+
 function result_clear() {
     $("#result").val('');
 }

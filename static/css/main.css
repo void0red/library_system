@@ -1,5 +1,5 @@
 .form-horizontal{
-    margin-top: 20%;
+    margin-top: 10%;
     background-color: rgba(255, 255, 255, 0.8);
     border-radius: 15px;
     text-align: center;
@@ -8,9 +8,9 @@
     display: block;
     font-size: 35px;
     font-weight: 700;
-    padding: 35px 0;
+    padding: 15px 0;
     border-bottom: 1px solid #f0f0f0;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 .form-horizontal .form-group{
     padding: 0 40px;
@@ -88,27 +88,49 @@
     text-transform: capitalize;
     transition: all 0.5s ease 0s;
 }
+.input-group .btn{
+    background: #00b4ef;
+    font-size: 14px;
+    color: #fff;
+    border: none;
+    transition: all 0.5s ease 0s;
+}
 .form-horizontal .other{
     float: left;
     padding-top: 2%;
     font-size: 15px;
     color: #11a3fc;
 }
-#login_message{
-    float: right;
-    margin-left: 7px;
-    line-height: 20px;
-    padding-top: 5px;
-    font-size: 14px;
-    color: red;
-}
-#register_message{
+
+.message{
     float: left;
     margin-left: 7px;
     line-height: 20px;
     padding-top: 5px;
     font-size: 14px;
     color: red;
+}
+.title{
+    text-align: center;
+    margin-bottom: 120px;
+}
+.list-btn{
+    display: block;
+    float: right;
+    background: #00b4ef;
+    font-size: 14px;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    transition: all 0.5s ease 0s;
+}
+.list-block{
+    margin-top: 50px;
+}
+.list-block a{
+    text-decoration: none;
+    color: #00b4ef;
+    cursor: pointer;
 }
 @media only screen and (max-width: 479px){
     .form-horizontal .form-group{
@@ -122,5 +144,89 @@
     }
     .form-horizontal .heading{
         font-size: 20px;
+    }
+}
+
+.navbar-default {
+    background-color: #ffffff;
+    border-color: #ffffff;
+}
+.navbar-default .navbar-brand {
+    color: #000000;
+}
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-brand:focus {
+    color: #009eff;
+}
+.navbar-default .navbar-text {
+    color: #000000;
+}
+.navbar-default .navbar-nav > li > a {
+    color: #000000;
+}
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+    color: #009eff;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu {
+    background-color: #fefefe;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a {
+    color: #000000;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:hover,
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:focus {
+    color: #009eff;
+    background-color: #ffffff;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li.divider {
+    background-color: #ffffff;
+}
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+    color: #009eff;
+    background-color: #ffffff;
+}
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+    color: #009eff;
+    background-color: #ffffff;
+}
+.navbar-default .navbar-toggle {
+    border-color: #ffffff;
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+    background-color: #ffffff;
+}
+.navbar-default .navbar-toggle .icon-bar {
+    background-color: #000000;
+}
+.navbar-default .navbar-collapse,
+.navbar-default .navbar-form {
+    border-color: #000000;
+}
+.navbar-default .navbar-link {
+    color: #000000;
+}
+.navbar-default .navbar-link:hover {
+    color: #009eff;
+}
+
+@media (max-width: 767px) {
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+        color: #000000;
+    }
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover,
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+        color: #009eff;
+    }
+    .navbar-default .navbar-nav .open .dropdown-menu > .active > a,
+    .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,
+    .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+        color: #009eff;
+        background-color: #ffffff;
     }
 }

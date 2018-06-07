@@ -5,7 +5,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
-CORS(app, resources={'*': {'origins': 'http://localhost:63342'}}, supports_credentials=True)
+CORS(app, resources={'*': {'origins': 'http://localhost:63343'}}, supports_credentials=True)
 
 app.config['SECRET_KEY'] = urandom(6)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
@@ -14,4 +14,4 @@ app.config['CSRF_ENABLED'] = False
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'user_login'
+login_manager.login_view = 'login'

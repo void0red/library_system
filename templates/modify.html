@@ -29,7 +29,7 @@
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">设置<b class="caret"></b></a>
                     <ul class="dropdown-menu">
-                        <li><a href="#" onclick="modify()">修改个人信息</a></li>
+                        <li><a href="modify.html">修改个人信息</a></li>
                         <li><a href="dashboard.html">查询借阅情况</a></li>
                         <li><a href="#" onclick="logout()">登出</a></li>
                     </ul>
@@ -40,15 +40,30 @@
 </nav>
 <div class="container">
     <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <h2 class="text-center">已借图书</h2>
+        <div class="col-md-6 col-md-offset-3">
+            <h2 class="text-center">修改个人信息</h2>
             <div class="list-block" id="result">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="username" placeholder="用户名">
+                    </div>
+                    <div class="form-group">
+                        <input type="email" class="form-control" id="email" placeholder="电子邮箱">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" id="password" placeholder="密码">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" id="re_password" placeholder="重复密码">
+                    </div>
+                    <div class="form-group">
+                        <div id="modify_message" class="message"></div>
+                        <button type="button" class="btn btn-default" onclick="user_modify()">确认</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 </body>
-<script>
-    $.ready(user_query());
-</script>
 </html>
