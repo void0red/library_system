@@ -234,7 +234,6 @@ function login() {
         })
     }
 }
-
 function logout() {
     $.ajax({
         type: 'GET',
@@ -246,7 +245,6 @@ function logout() {
         }
     })
 }
-
 function user_register() {
     $("#register_message").html('');
     let email = $("#register_email").val();
@@ -281,83 +279,61 @@ function user_register() {
 
 }
 
-
-function user_modify() {
-    let new_email = $("#email").val();
-    let new_password = $.md5($("#password").val());
-    let new_username = $("#username").val();
-    let params = {'new_email': new_email, 'new_password': new_password, 'new_username': new_username};
-    $.ajax({
-        type: 'POST',
-        url: urls.user_modify,
-        data: JSON.stringify(params),
-        xhrFields: {withCredentials: true},
-        crossDomain: true,
-        contentType: 'application/json',
-        complete: function (a) {
-            let re = 'data:' + JSON.stringify(params) + '\nstatus:' + a.status;
-            $("#result").val($("#result").val() + re + '\n');
-        }
-    })
-}
 function user_query() {
+    $("#result").html('');
+    let div = document.createElement('table');
+    div.className = 'table table-hover';
+    let head = document.createElement('thead');
+    head.innerHTML = '<tr>' +
+        '<th>书名</th>' +
+        '<th>借阅时间</th>' +
+        '<th>最迟归还时间</th>' +
+        '<th>状态</th>' +
+        '</tr>';
+    div.appendChild(head);
+    let tbody = document.createElement('tbody');
     $.ajax({
         type: 'GET',
         url: urls.user_query,
         xhrFields: {withCredentials: true},
         crossDomain: true,
-        complete: function (a) {
-            $("#result").val($("#result").val() + 'status:' + a.status + '\n');
-            if(a.status === 200){
-                const data = a.responseText;
-                $("#result").val($("#result").val() + data + '\n');
-            }
-        }
-    })
-}
-
-function admin_modify() {
-    let new_email = $("#email").val();
-    let new_password = $.md5($("#password").val());
-    let new_username = $("#username").val();
-    let params = {'new_email': new_email, 'new_password': new_password, 'new_username': new_username};
-    $.ajax({
-        type: 'POST',
-        url: urls.admin_modify,
-        data: JSON.stringify(params),
-        xhrFields: {withCredentials: true},
-        crossDomain: true,
-        contentType: 'application/json',
-        complete: function (a) {
-            let re = 'data:' + JSON.stringify(params) + '\nstatus:' + a.status;
-            $("#result").val($("#result").val() + re + '\n');
-        }
-    })
-}
-function admin_search() {
-    let email = $("#email").val();
-    let username = $("#username").val();
-    let id = $("#user_id").val();
-    let params = {'email': email, 'username': username, 'id': id};
-    $.ajax({
-        type: 'POST',
-        url: urls.admin_search,
-        data: JSON.stringify(params),
         dataType: 'json',
-        xhrFields: {withCredentials: true},
-        crossDomain: true,
-        contentType: 'application/json',
         complete: function (a) {
-            $("#result").val($("#result").val() + 'data:' + JSON.stringify(params)
-                + '\n' + 'status:' + a.status + '\n');
-            if (a.status === 200){
-                const data = a.responseText;
-                $("#result").val($("#result").val() + data + '\n');
+            if(a.status === 201){
+                const data = JSON.parse(a.responseText);
+                if(!data){
+                    $("#result").html('<h3>还没有借书？快去<a href="search.html">搜索</a></h3>吧！');
+                }else{
+                    for(let i = 0; i < data.length; i++){
+                        let tr = document.createElement('tr');
+                        let start_time = new Date(data[i].start_time);
+                        let end_time = new Date(data[i].end_time);
+                        let now = new Date();
+                        if(now > end_time){
+                            tr.innerHTML = '<td>' + data[i].name + '</td>' +
+                                '<td>' + start_time.toLocaleDateString() + '</td>' +
+                                '<td>' + end_time.toLocaleDateString() + '</td>' +
+                                '<td>逾期</td>';
+                            tr.className = 'danger';
+                            tr.setAttribute('style', 'color: #f00');
+                        }else{
+                            tr.innerHTML = '<td>' + data[i].name + '</td>' +
+                                '<td>' + start_time.toLocaleDateString() + '</td>' +
+                                '<td>' + end_time.toLocaleDateString() + '</td>' +
+                                '<td>正常</td>';
+                            tr.className = 'success';
+                        }
+                        tbody.appendChild(tr);
+                    }
+                    div.appendChild(tbody);
+                    $("#result").append(div);
+                }
+            }else{
+                window.location.href = urls.head + '/index.html';
             }
         }
     })
 }
-
 function book_search() {
     let content = $("#search").val();
     if(content !== ''){
@@ -411,10 +387,15 @@ function book_search() {
                         let div7 = document.createElement('div');
                         div7.className = 'modal-footer';
 
+                        let message = document.createElement('div');
+                        message.className = 'message';
+                        message.setAttribute('id', 'borrow_message_' + data[i].id);
+                        div7.appendChild(message);
+
                         let button = document.createElement('button');
                         button.className = 'btn btn-default list-btn';
                         button.innerHTML = '借阅';
-                        button.setAttribute('onclick', 'book_borrow()');
+                        button.setAttribute('onclick', 'book_borrow(' + data[i].id + ')');
                         button.disabled = !data[i].available;
 
                         div7.appendChild(button);
@@ -479,9 +460,7 @@ function book_search_clean() {
     $("#search").val('');
     $("#result").html('');
 }
-
-function book_borrow() {
-    let id = $("#book_id").val();
+function book_borrow(id) {
     $.ajax({
         type: 'POST',
         url: urls.book_borrow,
@@ -491,11 +470,95 @@ function book_borrow() {
         crossDomain: true,
         contentType: 'application/json',
         complete: function (a) {
-            $("#result").val($("#result").val() + JSON.stringify({'id': id})
-                + '\n' + 'status:' + a.status + '\n');
+            if(a.status === 201){
+                $("#borrow_message_" + id).html('当前书不可借阅');
+            }else if(a.status === 200){
+                $("#borrow_message_" + id).html('成功');
+            }else{
+                window.location.href = urls.head + '/index.html';
+            }
         }
     })
 }
+
+function user_modify() {
+    $("#modify_message").html('');
+    let email = $("#email").val();
+    let password = $("#password").val();
+    let repassword = $("#re_password").val();
+    let username = $("#username").val();
+    let reg = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$");
+    if (email && !reg.test(email)) {
+        $("#modify_message").html("请输入正确的邮箱");
+    } else if (password !== repassword) {
+        $("#modify_message").html("两次密码不相同");
+    } else {
+        let params = {'new_email': email, 'new_password': $.md5(password), 'new_username': username};
+        $.ajax({
+            type: 'POST',
+            url: urls.user_modify,
+            data: JSON.stringify(params),
+            xhrFields: {withCredentials: true},
+            crossDomain: true,
+            contentType: 'application/json',
+            complete: function (a) {
+                if(a.status === 202){
+                    $("#modify_message").html("邮箱已存在");
+                }else if(a.status === 400){
+                    window.location.href = urls.head + '/index.html';
+                }else if(a.status === 201){
+                    $("#modify_message").html("修改成功");
+                    window.location.href = urls.head + '/index.html';
+                }
+            }
+        })
+    }
+}
+
+
+function admin_modify() {
+    let new_email = $("#email").val();
+    let new_password = $.md5($("#password").val());
+    let new_username = $("#username").val();
+    let params = {'new_email': new_email, 'new_password': new_password, 'new_username': new_username};
+    $.ajax({
+        type: 'POST',
+        url: urls.admin_modify,
+        data: JSON.stringify(params),
+        xhrFields: {withCredentials: true},
+        crossDomain: true,
+        contentType: 'application/json',
+        complete: function (a) {
+            let re = 'data:' + JSON.stringify(params) + '\nstatus:' + a.status;
+            $("#result").val($("#result").val() + re + '\n');
+        }
+    })
+}
+function admin_search() {
+    let email = $("#email").val();
+    let username = $("#username").val();
+    let id = $("#user_id").val();
+    let params = {'email': email, 'username': username, 'id': id};
+    $.ajax({
+        type: 'POST',
+        url: urls.admin_search,
+        data: JSON.stringify(params),
+        dataType: 'json',
+        xhrFields: {withCredentials: true},
+        crossDomain: true,
+        contentType: 'application/json',
+        complete: function (a) {
+            $("#result").val($("#result").val() + 'data:' + JSON.stringify(params)
+                + '\n' + 'status:' + a.status + '\n');
+            if (a.status === 200){
+                const data = a.responseText;
+                $("#result").val($("#result").val() + data + '\n');
+            }
+        }
+    })
+}
+
+
 function book_return() {
     let id = $("#book_id").val();
     $.ajax({
@@ -570,6 +633,7 @@ function book_modify() {
         }
     })
 }
+
 function result_clear() {
     $("#result").val('');
 }

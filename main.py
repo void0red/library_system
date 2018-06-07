@@ -56,19 +56,20 @@ def user_modify():
         return '', 400
     data = request.get_json()
     if not data:
-        return '', 201
-    if data.get('new_email'):
+        return '', 400
+    if data.get('new_email') and data.get('new_email') is not '':
         x = User.query.filter_by(email=data['new_email']).first()
-        if not x:
+        if not x or x.email == data['new_email']:
             current_user.email = data['new_email']
         else:
-            return '', 201
-    if data.get('new_password'):
+            return '', 202
+    if data.get('new_password') and data.get('new_password') is not '':
         current_user.password = data['new_password']
-    if data.get('new_username'):
+    if data.get('new_username') and data.get('new_username') is not '':
         current_user.username = data['new_username']
     db.session.commit()
-    return '', 200
+    logout_user()
+    return '', 201
 
 
 @app.route('/api/user/query', methods=['GET'])
@@ -79,8 +80,9 @@ def user_query():
     borrow = Borrow.query.filter_by(user_id=current_user.id).all()
     re = []
     for i in borrow:
-        re.append({'book_id': i.book_id, 'start_time': i.start_time, 'end_time': i.end_time})
-    return jsonify(re), 200
+        book = Book.query.filter_by(id=i.book_id).first()
+        re.append({'book_id': i.book_id, 'name': book.name, 'start_time': i.start_time, 'end_time': i.end_time})
+    return jsonify(re), 201
 
 
 @app.route('/api/admin/modify', methods=['POST'])

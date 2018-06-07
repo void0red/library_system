@@ -38,8 +38,8 @@
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">设置<b class="caret"></b></a>
                     <ul class="dropdown-menu">
-                        <li><a href="">修改个人信息</a></li>
-                        <li><a href="">查询借阅情况</a></li>
+                        <li><a href="modify.html">修改个人信息</a></li>
+                        <li><a href="dashboard.html">查询借阅情况</a></li>
                         <li><a href="#" onclick="logout()">登出</a></li>
                     </ul>
                 </li>
@@ -65,7 +65,7 @@
                             <label for="login_remember"></label>
                         </div>
                         <span class="text">Remember me</span>
-                        <div id="login_message"></div>
+                        <div id="login_message" class="message pull-right"></div>
                     </div>
                     <div class="form-group">
                         <a class="other" data-toggle="modal" data-target="#register">还没有账户？点我注册</a>
@@ -93,7 +93,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <div class="form-group">
-                                            <div class="pull-left" id="register_message"></div>
+                                            <div class="message" id="register_message"></div>
                                             <button type="button" class="btn btn-primary" onclick="user_register()">提交</button>
                                         </div>
                                     </div>
