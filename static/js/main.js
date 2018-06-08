@@ -183,7 +183,7 @@
 })(jQuery);
 
 
-const localhost = 'http://127.0.0.1:5000';
+const localhost = 'http://127.0.0.1:5005';
 
 const urls = {
     // 'user_login': localhost + '/api/user/login',
@@ -203,7 +203,7 @@ const urls = {
     'book_add': localhost + '/api/book/add',
     'book_remove': localhost + '/api/book/remove',
     'book_modify': localhost + '/api/book/modify',
-    'head': '/library_system/library_system/templates'
+    'head': ''
 };
 
 function login() {
