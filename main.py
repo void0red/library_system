@@ -298,6 +298,3 @@ def book_modify():
             return '', 200
     else:
         return '', 201
-
-
-app.run(debug=True)

@@ -183,7 +183,7 @@
 })(jQuery);
 
 
-const localhost = 'http://127.0.0.1:5005';
+const localhost = '';
 
 const urls = {
     // 'user_login': localhost + '/api/user/login',
